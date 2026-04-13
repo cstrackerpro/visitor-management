@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitor Management - Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --navy: #0a1628;
+    --blue: #1a3a6b;
+    --blue-mid: #2a5298;
+    --gold: #c8960c;
+    --gold-light: #f0b429;
+    --cream: #fdf6e3;
+    --white: #ffffff;
+    --red: #c0392b;
+    --green: #27ae60;
+    --orange: #e67e22;
+    --bg: #f0f2f7;
+    --sidebar-w: 240px;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e2e8f0;
+    --card: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+  }
+  .sidebar-logo {
+    width: 50px; height: 50px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 10px;
+  }
+  .sidebar-header h2 {
+    color: var(--gold-light);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    line-height: 1.3;
+  }
+  .sidebar-header p {
+    color: rgba(255,255,255,0.5);
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  .gold-line { height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+
+  .nav-item {
+    padding: 13px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .nav-item.active { background: rgba(200,150,12,0.15); color: var(--gold-light); border-left-color: var(--gold); }
+  .nav-item .nav-icon { font-size: 16px; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .clock-widget {
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+  }
+  .clock-widget .time { font-size: 18px; color: var(--gold-light); font-weight: 600; margin-bottom: 2px; }
+  .clock-widget .date-str { color: rgba(255,255,255,0.5); font-size: 10px; }
+
+  /* Main content */
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+  /* Topbar */
+  .topbar {
+    background: white;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h1 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 7px;
+    border: none;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--navy); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #219a52; }
+  .btn-gold { background: var(--gold); color: white; }
+  .btn-gold:hover { background: #b8860b; }
+  .btn-outline { background: white; color: var(--blue); border: 1.5px solid var(--blue); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  /* Content area */
+  .content { padding: 24px; }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.blue::after { background: var(--blue-mid); }
+  .stat-card.green::after { background: var(--green); }
+  .stat-card.orange::after { background: var(--orange); }
+  .stat-card.gold::after { background: var(--gold); }
+
+  .stat-card .icon { font-size: 28px; margin-bottom: 8px; }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-card .lbl {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Table card */
+  .table-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .table-toolbar {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .table-toolbar h3 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 250px;
+  }
+  .search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    width: 100%;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #f8fafc;
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: #f8fafc; }
+  tbody td {
+    padding: 12px 14px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .visitor-name { font-weight: 600; color: var(--navy); }
+  .visitor-mobile { color: var(--muted); font-size: 12px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  .badge-inside { background: #dcfce7; color: #166534; }
+  .badge-left { background: #fef3c7; color: #92400e; }
+
+  .token-cell { font-size: 11px; font-family: monospace; font-weight: 700; color: var(--blue-mid); }
+
+  .photo-thumb {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+  }
+  .photo-placeholder {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .action-btns { display: flex; gap: 6px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 14px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.2s ease-out;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .modal-header h3 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .modal-close {
+    background: #f1f5f9;
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  .detail-row .dl { width: 130px; flex-shrink: 0; color: var(--muted); font-size: 13px; }
+  .detail-row .dv { font-size: 13px; font-weight: 600; color: var(--text); }
+  .detail-photo {
+    width: 100px; height: 100px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  /* QR Modal */
+  .qr-section {
+    text-align: center;
+  }
+  .qr-section h3 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .qr-section p {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  #qr-container {
+    display: inline-block;
+    padding: 16px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .qr-url {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    word-break: break-all;
+    margin-bottom: 16px;
+  }
+  .qr-instructions {
+    background: rgba(26,58,107,0.05);
+    border: 1px solid rgba(26,58,107,0.15);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: left;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 12px;
+    color: var(--blue);
+    line-height: 1.8;
+  }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-tab {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .filter-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+  /* Date filter */
+  .date-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .date-filter input[type="date"] {
+    padding: 7px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+  }
+  .date-filter input[type="date"]:focus { border-color: var(--blue); }
+
+  .toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">🏛️</div>
+    <h2>Wadala TT Police Station</h2>
+    <p>Visitor Management System</p>
+  </div>
+  <div class="gold-line"></div>
+  <div style="padding: 12px 0;">
+    <div class="nav-item active" onclick="showTab('dashboard')">
+      <span class="nav-icon">📊</span> डॅशबोर्ड
+    </div>
+    <div class="nav-item" onclick="showTab('visitors')">
+      <span class="nav-icon">👥</span> अभ्यागत यादी
+    </div>
+    <div class="nav-item" onclick="showTab('inside')">
+      <span class="nav-icon">🚪</span> आत असलेले
+    </div>
+    <div class="nav-item" onclick="showQR()">
+      <span class="nav-icon">📱</span> QR Code दाखवा
+    </div>
+    <div class="nav-item" onclick="exportToExcel()">
+      <span class="nav-icon">📥</span> Excel Export
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="clock-widget">
+      <div class="time" id="sidebar-clock">--:--</div>
+      <div class="date-str" id="sidebar-date"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <h1 id="page-title">📊 आजचा डॅशबोर्ड</h1>
+    <div class="topbar-actions">
+      <button class="btn btn-gold" onclick="loadDemoData()">🔄 Demo Data</button>
+      <button class="btn btn-success" onclick="exportToExcel()">📥 Excel Export</button>
+      <button class="btn btn-primary" onclick="showQR()">📱 QR Code</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card blue">
+        <div class="icon">👥</div>
+        <div class="num" id="stat-total">0</div>
+        <div class="lbl">आजचे एकूण अभ्यागत</div>
+      </div>
+      <div class="stat-card green">
+        <div class="icon">🚪</div>
+        <div class="num" id="stat-inside">0</div>
+        <div class="lbl">आत असलेले</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="icon">✅</div>
+        <div class="num" id="stat-left">0</div>
+        <div class="lbl">निघून गेलेले</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="icon">⏰</div>
+        <div class="num" id="stat-peak">--</div>
+        <div class="lbl">सर्वाधिक गर्दीची वेळ</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div>
+          <h3 id="table-title">अभ्यागत नोंदणी</h3>
+          <div class="filter-tabs" style="margin-top: 10px;">
+            <div class="filter-tab active" onclick="filterByStatus('all', this)">सर्व</div>
+            <div class="filter-tab" onclick="filterByStatus('inside', this)">आत आहेत</div>
+            <div class="filter-tab" onclick="filterByStatus('left', this)">निघाले</div>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <div class="date-filter">
+            <span style="font-size:12px;color:var(--muted);">दिनांक:</span>
+            <input type="date" id="date-filter" onchange="renderTable()">
+          </div>
+          <div class="search-box">
+            🔍
+            <input type="text" id="search-input" placeholder="नाव / मोबाईल / Token शोधा..." oninput="renderTable()">
+          </div>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>फोटो</th>
+              <th>Token</th>
+              <th>नाव / मोबाईल</th>
+              <th>भेटण्याचे कारण</th>
+              <th>अधिकारी</th>
+              <th>प्रवेश वेळ</th>
+              <th>स्थिती</th>
+              <th>कृती</th>
+            </tr>
+          </thead>
+          <tbody id="visitor-tbody">
+            <tr>
+              <td colspan="8">
+                <div class="empty-state">
+                  <div class="icon">📋</div>
+                  <p>अजून कोणाची नोंदणी झालेली नाही</p>
+                  <p style="margin-top:8px; font-size:12px;">QR Code स्कॅन करून visitor नोंदणी सुरू करा</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>अभ्यागत माहिती</h3>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📱 QR Code</h3>
+      <button class="modal-close" onclick="closeModal('qr-modal')">✕</button>
+    </div>
+    <div class="qr-section">
+      <h3>अभ्यागत नोंदणी</h3>
+      <p>हा QR Code स्वागत कक्षात लावा. अभ्यागत स्कॅन करतील व नोंदणी करतील.</p>
+      <div id="qr-container"></div>
+      <div class="qr-url" id="qr-url-display"></div>
+      <div class="qr-instructions">
+        📌 <strong>वापरण्याची पद्धत:</strong><br>
+        १. हा QR Code प्रिंट करून counter वर लावा<br>
+        २. अभ्यागत स्वतःच्या मोबाईलने स्कॅन करतील<br>
+        ३. form भरून submit करतील<br>
+        ४. इथे आपोआप नोंद होईल<br>
+        ५. Token नंबर मिळेल - त्यावरून बोलावा
+      </div>
+      <div style="margin-top: 16px; display:flex; gap:10px; justify-content:center;">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print करा</button>
+        <button class="btn btn-outline" onclick="downloadQR()">📥 Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exit confirm modal -->
+<div class="modal-overlay" id="exit-modal">
+  <div class="modal" style="max-width:360px; text-align:center;">
+    <div style="font-size:48px; margin-bottom:16px;">🚪</div>
+    <h3 style="font-family:'Noto Sans Devanagari',sans-serif; margin-bottom:8px; font-size:18px;" id="exit-name"></h3>
+    <p style="font-family:'Noto Sans Devanagari',sans-serif; color:var(--muted); font-size:13px; margin-bottom:24px;">हे अभ्यागत बाहेर गेले असे नोंदवायचे का?</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn btn-outline" onclick="closeModal('exit-modal')">रद्द करा</button>
+      <button class="btn btn-success" id="exit-confirm-btn">✅ हो, Exit नोंदवा</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let visitors = [];
+let currentFilter = 'all';
+let currentToken = null;
+
+const FORM_URL = location.href.replace('admin.html', 'visitor_form.html');
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const s = now.getSeconds().toString().padStart(2,'0');
+  document.getElementById('sidebar-clock').textContent = `${h}:${m}:${s}`;
+  document.getElementById('sidebar-date').textContent = now.toLocaleDateString('mr-IN', {weekday:'short', day:'numeric', month:'short'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Set today's date as default
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('date-filter').value = today;
+
+// Load data
+function loadData() {
+  try {
+    visitors = JSON.parse(localStorage.getItem('vs_visitors') || '[]');
+  } catch(e) { visitors = []; }
+  updateStats();
+  renderTable();
+}
+
+// Demo data
+function loadDemoData() {
+  const reasons = ['तक्रार नोंदवणे','FIR स्थिती','चारित्र्य प्रमाणपत्र','NOC / परवाना','माहिती घेणे'];
+  const officers = ['PI / सीनियर PI','API (Cyber Cell)','PSI (ड्युटी अधिकारी)'];
+  const names = ['राजेश शिंदे','प्रिया पाटील','अजय कदम','सुनीता मोरे','विकास जाधव','मीना चव्हाण','संजय गायकवाड','पूजा नाईक'];
+  const seq = visitors.length;
+  const now = new Date();
+
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(now.getTime() - i * 18 * 60000);
+    const token = `WTT${String(d.getDate()).padStart(2,'0')}${String(d.getMonth()+1).padStart(2,'0')}${String(seq+i+1).padStart(3,'0')}`;
+    visitors.push({
+      token,
+      name: names[i % names.length],
+      mobile: `98${Math.floor(10000000 + Math.random()*89999999)}`,
+      address: `${Math.floor(100+Math.random()*900)}, दादर, मुंबई`,
+      idType: 'आधार कार्ड',
+      idNumber: `XXXX XXXX ${Math.floor(1000+Math.random()*9000)}`,
+      reason: reasons[i % reasons.length],
+      officer: officers[i % officers.length],
+      photo: '',
+      entryTime: d.toISOString(),
+      exitTime: i > 2 ? new Date(d.getTime() + 30*60000).toISOString() : null,
+      date: d.toLocaleDateString('mr-IN')
+    });
+  }
+  localStorage.setItem('vs_visitors', JSON.stringify(visitors));
+  updateStats();
+  renderTable();
+}
+
+// Stats
+function updateStats() {
+  const todayStr = new Date().toLocaleDateString('mr-IN');
+  const todayVisitors = visitors.filter(v => new Date(v.entryTime).toLocaleDateString('mr-IN') === todayStr);
+  const inside = todayVisitors.filter(v => !v.exitTime);
+  const left = todayVisitors.filter(v => v.exitTime);
+
+  document.getElementById('stat-total').textContent = todayVisitors.length;
+  document.getElementById('stat-inside').textContent = inside.length;
+  document.getElementById('stat-left').textContent = left.length;
+
+  // Peak hour
+  if (todayVisitors.length > 0) {
+    const hourCounts = {};
+    todayVisitors.forEach(v => {
+      const h = new Date(v.entryTime).getHours();
+      hourCounts[h] = (hourCounts[h] || 0) + 1;
+    });
+    const peakH = Object.keys(hourCounts).reduce((a,b) => hourCounts[a] > hourCounts[b] ? a : b);
+    const h = parseInt(peakH);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = (h % 12 || 12).toString().padStart(2,'0');
+    document.getElementById('stat-peak').textContent = `${h12}:00 ${ampm}`;
+  }
+}
+
+// Render table
+function renderTable() {
+  const searchVal = document.getElementById('search-input').value.toLowerCase();
+  const dateVal = document.getElementById('date-filter').value;
+
+  let filtered = visitors.filter(v => {
+    // Date filter
+    if (dateVal) {
+      const vDate = new Date(v.entryTime).toISOString().split('T')[0];
+      if (vDate !== dateVal) return false;
+    }
+    // Status filter
+    if (currentFilter === 'inside' && v.exitTime) return false;
+    if (currentFilter === 'left' && !v.exitTime) return false;
+    // Search
+    if (searchVal) {
+      const combined = `${v.name} ${v.mobile} ${v.token}`.toLowerCase();
+      if (!combined.includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  // Sort newest first
+  filtered.sort((a,b) => new Date(b.entryTime) - new Date(a.entryTime));
+
+  const tbody = document.getElementById('visitor-tbody');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><p>कोणतीही नोंद सापडली नाही</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(v => {
+    const entryTime = new Date(v.entryTime).toLocaleTimeString('mr-IN', {hour:'2-digit', minute:'2-digit'});
+    const exitTime = v.exitTime ? new Date(v.exitTime).toLocaleTimeString('mr-IN', {hour:'2-digit', minute:'2-digit'}) : null;
+    const isInside = !v.exitTime;
+
+    const photoEl = v.photo 
+      ? `<img src="${v.photo}" class="photo-thumb" alt="photo">`
+      : `<div class="photo-placeholder">👤</div>`;
+
+    return `<tr>
+      <td>${photoEl}</td>
+      <td><span class="token-cell">${v.token}</span></td>
+      <td>
+        <div class="visitor-name">${v.name}</div>
+        <div class="visitor-mobile">📞 ${v.mobile}</div>
+      </td>
+      <td style="font-size:12px; font-family:'Noto Sans Devanagari',sans-serif;">${v.reason}</td>
+      <td style="font-size:12px; font-family:'Noto Sans Devanagari',sans-serif;">${v.officer}</td>
+      <td style="font-size:12px;">
+        🟢 ${entryTime}
+        ${exitTime ? `<br>🔴 ${exitTime}` : ''}
+      </td>
+      <td><span class="badge ${isInside ? 'badge-inside' : 'badge-left'}">${isInside ? '🟢 आत आहे' : '🔴 निघाले'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-outline btn-sm" onclick="showDetail('${v.token}')">👁 पाहा</button>
+          ${isInside ? `<button class="btn btn-success btn-sm" onclick="confirmExit('${v.token}','${v.name}')">Exit</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteEntry('${v.token}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Filter tabs
+function filterByStatus(status, el) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+// Show visitor detail
+function showDetail(token) {
+  const v = visitors.find(x => x.token === token);
+  if (!v) return;
+  const entryTime = new Date(v.entryTime).toLocaleString('mr-IN');
+  const exitTime = v.exitTime ? new Date(v.exitTime).toLocaleString('mr-IN') : 'अजून आत आहे';
+
+  document.getElementById('modal-content').innerHTML = `
+    ${v.photo ? `<img src="${v.photo}" class="detail-photo">` : ''}
+    <div class="detail-row"><span class="dl">Token</span><span class="dv">${v.token}</span></div>
+    <div class="detail-row"><span class="dl">नाव</span><span class="dv">${v.name}</span></div>
+    <div class="detail-row"><span class="dl">मोबाईल</span><span class="dv">${v.mobile}</span></div>
+    <div class="detail-row"><span class="dl">पत्ता</span><span class="dv">${v.address}</span></div>
+    <div class="detail-row"><span class="dl">ID प्रकार</span><span class="dv">${v.idType}</span></div>
+    <div class="detail-row"><span class="dl">ID क्रमांक</span><span class="dv">${v.idNumber}</span></div>
+    <div class="detail-row"><span class="dl">भेटण्याचे कारण</span><span class="dv">${v.reason}</span></div>
+    <div class="detail-row"><span class="dl">अधिकारी</span><span class="dv">${v.officer}</span></div>
+    <div class="detail-row"><span class="dl">प्रवेश वेळ</span><span class="dv">${entryTime}</span></div>
+    <div class="detail-row"><span class="dl">निर्गमन वेळ</span><span class="dv">${exitTime}</span></div>
+  `;
+  document.getElementById('detail-modal').classList.add('active');
+}
+
+// Confirm exit
+function confirmExit(token, name) {
+  currentToken = token;
+  document.getElementById('exit-name').textContent = name;
+  document.getElementById('exit-confirm-btn').onclick = () => markExit(token);
+  document.getElementById('exit-modal').classList.add('active');
+}
+
+function markExit(token) {
+  const idx = visitors.findIndex(v => v.token === token);
+  if (idx !== -1) {
+    visitors[idx].exitTime = new Date().toISOString();
+    localStorage.setItem('vs_visitors', JSON.stringify(visitors));
+    closeModal('exit-modal');
+    updateStats();
+    renderTable();
+  }
+}
+
+// Delete
+function deleteEntry(token) {
+  if (!confirm('ही नोंद कायमची हटवायची का?')) return;
+  visitors = visitors.filter(v => v.token !== token);
+  localStorage.setItem('vs_visitors', JSON.stringify(visitors));
+  updateStats();
+  renderTable();
+}
+
+// Close modal
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Show QR
+function showQR() {
+  document.getElementById('qr-modal').classList.add('active');
+  document.getElementById('qr-container').innerHTML = '';
+  document.getElementById('qr-url-display').textContent = FORM_URL;
+  try {
+    new QRCode(document.getElementById('qr-container'), {
+      text: FORM_URL,
+      width: 200,
+      height: 200,
+      colorDark: '#0a1628',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch(e) {
+    document.getElementById('qr-container').innerHTML = `<div style="padding:20px; font-size:12px; color:#888;">QR library लोड नाही झाली.<br>URL: ${FORM_URL}</div>`;
+  }
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-container canvas');
+  if (canvas) {
+    const link = document.createElement('a');
+    link.download = 'visitor_qr.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  }
+}
+
+// Excel export
+function exportToExcel() {
+  if (visitors.length === 0) {
+    alert('Export करण्यासाठी कोणतीही नोंद नाही');
+    return;
+  }
+  const data = visitors.map(v => ({
+    'Token': v.token,
+    'नाव': v.name,
+    'मोबाईल': v.mobile,
+    'पत्ता': v.address,
+    'ID प्रकार': v.idType,
+    'ID क्रमांक': v.idNumber,
+    'भेटण्याचे कारण': v.reason,
+    'अधिकारी': v.officer,
+    'प्रवेश वेळ': new Date(v.entryTime).toLocaleString('mr-IN'),
+    'निर्गमन वेळ': v.exitTime ? new Date(v.exitTime).toLocaleString('mr-IN') : 'आत आहे',
+    'दिनांक': new Date(v.entryTime).toLocaleDateString('mr-IN')
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  // Column widths
+  ws['!cols'] = [
+    {wch:14},{wch:20},{wch:14},{wch:30},{wch:16},{wch:20},{wch:24},{wch:20},{wch:20},{wch:20},{wch:14}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Visitors');
+  const fname = `visitor_log_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// Tab navigation
+function showTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  if (tab === 'inside') {
+    filterByStatus('inside', document.querySelectorAll('.filter-tab')[1]);
+    document.getElementById('page-title').textContent = '🚪 आत असलेले अभ्यागत';
+  } else {
+    filterByStatus('all', document.querySelectorAll('.filter-tab')[0]);
+    document.getElementById('page-title').textContent = tab === 'dashboard' ? '📊 आजचा डॅशबोर्ड' : '👥 अभ्यागत यादी';
+  }
+}
+
+// Auto-refresh every 15 seconds
+setInterval(() => {
+  loadData();
+}, 15000);
+
+// Init
+loadData();
+</script>
+</body>
+</html>

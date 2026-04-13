@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>पोलीस स्टेशन - अभ्यागत नोंदणी</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --blue: #1a3a6b;
+    --gold: #c8960c;
+    --gold-light: #f0b429;
+    --cream: #fdf6e3;
+    --white: #ffffff;
+    --red: #c0392b;
+    --green: #27ae60;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #d1c4a0;
+    --input-bg: #fffef9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    background: var(--navy);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    padding: 20px 16px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    border: 2px solid rgba(200,150,12,0.3);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -20px;
+    width: 100px; height: 100px;
+    border: 2px solid rgba(200,150,12,0.2);
+    border-radius: 50%;
+  }
+
+  .emblem {
+    width: 60px; height: 60px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 4px 15px rgba(200,150,12,0.4);
+    position: relative; z-index: 1;
+  }
+
+  .header h1 {
+    font-family: 'Tiro Devanagari Hindi', serif;
+    color: var(--gold-light);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    position: relative; z-index: 1;
+  }
+  .header h2 {
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    font-weight: 400;
+    margin-top: 4px;
+    position: relative; z-index: 1;
+  }
+  .station-name {
+    display: inline-block;
+    background: rgba(200,150,12,0.2);
+    border: 1px solid rgba(200,150,12,0.4);
+    color: var(--gold-light);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 8px;
+    position: relative; z-index: 1;
+  }
+
+  /* Form container */
+  .form-container {
+    background: var(--cream);
+    margin: 0;
+    padding: 20px 16px 40px;
+    min-height: calc(100vh - 160px);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 12px;
+    padding-left: 10px;
+    border-left: 3px solid var(--gold);
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+  label span.req { color: var(--red); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,58,107,0.1);
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a3a6b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+  textarea { resize: none; min-height: 80px; }
+
+  /* Photo capture */
+  .photo-box {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    background: var(--input-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .photo-box:active { background: #f5f0e0; border-color: var(--blue); }
+  .photo-box .icon { font-size: 32px; margin-bottom: 6px; }
+  .photo-box p { font-size: 13px; color: var(--muted); }
+  .photo-box p strong { color: var(--blue); }
+  #photo-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: none;
+    margin-top: 10px;
+  }
+  #photo-input { display: none; }
+
+  /* ID type radio group */
+  .radio-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .radio-option {
+    flex: 1;
+    min-width: 100px;
+  }
+  .radio-option input { display: none; }
+  .radio-option label {
+    display: block;
+    text-align: center;
+    padding: 10px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    background: var(--input-bg);
+    transition: all 0.2s;
+  }
+  .radio-option input:checked + label {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: white;
+  }
+
+  /* Visit reason chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip input { display: none; }
+  .chip label {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    background: var(--input-bg);
+    transition: all 0.2s;
+  }
+  .chip input:checked + label {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: white;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--blue), var(--navy));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s;
+    letter-spacing: 0.5px;
+  }
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.4s;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:hover::before { left: 100%; }
+
+  .gold-strip {
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    margin: 0;
+  }
+
+  /* Success screen */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--cream);
+    min-height: calc(100vh - 160px);
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 25px rgba(39,174,96,0.3);
+    animation: pop 0.4s ease-out;
+  }
+  @keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .success-screen h2 {
+    font-size: 22px;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+  .success-screen p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .token-box {
+    background: var(--navy);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin: 24px 0;
+    display: inline-block;
+  }
+  .token-box .label { color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .token-box .token { color: var(--gold-light); font-size: 32px; font-weight: 700; letter-spacing: 4px; }
+  .token-box .time { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 4px; }
+  .info-row {
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  .info-row .lbl { color: var(--muted); font-size: 12px; width: 100px; flex-shrink: 0; }
+  .info-row .val { color: var(--text); font-size: 13px; font-weight: 600; }
+
+  .note-box {
+    background: rgba(200,150,12,0.1);
+    border: 1px solid rgba(200,150,12,0.3);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: #7a5c00;
+    margin-top: 16px;
+    text-align: left;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0 16px;
+  }
+  
+  .time-display {
+    background: rgba(26,58,107,0.06);
+    border: 1px solid rgba(26,58,107,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--blue);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="emblem">🏛️</div>
+  <h1>महाराष्ट्र पोलीस</h1>
+  <h2>अभ्यागत नोंदणी प्रणाली</h2>
+  <div class="station-name">Wadala TT Police Station</div>
+</div>
+<div class="gold-strip"></div>
+
+<!-- FORM -->
+<div class="form-container" id="form-section">
+
+  <div class="section-title">वैयक्तिक माहिती</div>
+
+  <div class="field">
+    <label>पूर्ण नाव <span class="req">*</span></label>
+    <input type="text" id="visitor-name" placeholder="उदा. राजेश प्रकाश शिंदे">
+  </div>
+
+  <div class="field">
+    <label>मोबाईल नंबर <span class="req">*</span></label>
+    <input type="tel" id="mobile" placeholder="10 अंकी मोबाईल नंबर" maxlength="10" pattern="[0-9]{10}">
+  </div>
+
+  <div class="field">
+    <label>पत्ता <span class="req">*</span></label>
+    <textarea id="address" placeholder="राहण्याचा पूर्ण पत्ता लिहा..."></textarea>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-title">ओळखपत्र (ID Proof)</div>
+
+  <div class="field">
+    <label>ID प्रकार <span class="req">*</span></label>
+    <div class="radio-group">
+      <div class="radio-option">
+        <input type="radio" name="id-type" id="id-aadhaar" value="आधार कार्ड" checked>
+        <label for="id-aadhaar">आधार</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="id-type" id="id-pan" value="पॅन कार्ड">
+        <label for="id-pan">पॅन</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="id-type" id="id-dl" value="Driving Licence">
+        <label for="id-dl">DL</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="id-type" id="id-voter" value="मतदान कार्ड">
+        <label for="id-voter">Voter</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>ID क्रमांक <span class="req">*</span></label>
+    <input type="text" id="id-number" placeholder="ओळखपत्र क्रमांक टाका" style="text-transform:uppercase">
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-title">भेटीची माहिती</div>
+
+  <div class="field">
+    <label>भेटण्याचे कारण <span class="req">*</span></label>
+    <div class="chips">
+      <div class="chip"><input type="radio" name="reason" id="r1" value="तक्रार नोंदवणे"><label for="r1">📝 तक्रार नोंदवणे</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r2" value="FIR स्थिती"><label for="r2">📋 FIR स्थिती</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r3" value="चारित्र्य प्रमाणपत्र"><label for="r3">📄 चारित्र्य प्रमाणपत्र</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r4" value="NOC / परवाना"><label for="r4">🔖 NOC / परवाना</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r5" value="समन्स / नोटीस"><label for="r5">⚖️ समन्स / नोटीस</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r6" value="माहिती घेणे"><label for="r6">ℹ️ माहिती घेणे</label></div>
+      <div class="chip"><input type="radio" name="reason" id="r7" value="इतर"><label for="r7">अन्य कारण</label></div>
+    </div>
+  </div>
+
+  <div class="field" id="other-reason-field" style="display:none">
+    <label>कारण सांगा</label>
+    <input type="text" id="other-reason" placeholder="भेटण्याचे कारण लिहा...">
+  </div>
+
+  <div class="field">
+    <label>कोणत्या अधिकाऱ्यास भेटायचे? <span class="req">*</span></label>
+    <select id="officer">
+      <option value="">-- अधिकारी निवडा --</option>
+      <option value="PI / सीनियर PI">PI / सीनियर PI</option>
+      <option value="API (Cyber Cell)">API (Cyber Cell)</option>
+      <option value="PSI (ड्युटी अधिकारी)">PSI (ड्युटी अधिकारी)</option>
+      <option value="ASI">ASI</option>
+      <option value="हवालदार / कर्मचारी">हवालदार / कर्मचारी</option>
+      <option value="माहित नाही">माहित नाही</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>प्रवेश वेळ</label>
+    <div class="time-display" id="entry-time-display">--:-- --</div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-title">फोटो / छायाचित्र</div>
+
+  <div class="photo-box" onclick="document.getElementById('photo-input').click()">
+    <div class="icon">📷</div>
+    <p><strong>फोटो काढा किंवा निवडा</strong></p>
+    <p>आपला स्पष्ट फोटो द्यावा</p>
+    <img id="photo-preview" alt="preview">
+  </div>
+  <input type="file" id="photo-input" accept="image/*" capture="user">
+
+  <button class="submit-btn" onclick="submitForm()">✅ नोंदणी पूर्ण करा</button>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="success-screen" id="success-section">
+  <div class="success-icon">✓</div>
+  <h2>नोंदणी यशस्वी!</h2>
+  <p>आपली नोंद झाली आहे. कृपया बसण्याच्या खोलीत प्रतीक्षा करावी.</p>
+  
+  <div class="token-box">
+    <div class="label">Token Number</div>
+    <div class="token" id="token-display">---</div>
+    <div class="time" id="token-time"></div>
+  </div>
+
+  <div id="summary-rows"></div>
+
+  <div class="note-box">
+    ⚠️ <strong>सूचना:</strong> Token क्रमांक लक्षात ठेवा. काउंटरवर बोलावले जाईल. कृपया मोबाईल Silent मोडवर ठेवा.
+  </div>
+</div>
+
+<script>
+// Update entry time
+const entryTimeDisplay = document.getElementById('entry-time-display');
+function updateTime() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = (h % 12 || 12).toString().padStart(2,'0');
+  entryTimeDisplay.textContent = `${h12}:${m} ${ampm}`;
+}
+updateTime();
+
+// Photo preview
+document.getElementById('photo-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const preview = document.getElementById('photo-preview');
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+    document.querySelector('.photo-box .icon').textContent = '✅';
+    document.querySelector('.photo-box p:first-of-type').innerHTML = '<strong>फोटो जोडला गेला</strong>';
+    document.querySelector('.photo-box p:last-of-type').textContent = 'पुन्हा बदलण्यासाठी tap करा';
+  };
+  reader.readAsDataURL(file);
+});
+
+// Show/hide other reason
+document.querySelectorAll('input[name="reason"]').forEach(r => {
+  r.addEventListener('change', function() {
+    document.getElementById('other-reason-field').style.display = this.value === 'इतर' ? 'block' : 'none';
+  });
+});
+
+// Generate token
+function generateToken() {
+  const now = new Date();
+  const day = now.getDate().toString().padStart(2,'0');
+  const mon = (now.getMonth()+1).toString().padStart(2,'0');
+  const seq = (parseInt(localStorage.getItem('vs_today_seq') || '0') + 1);
+  const today = `${now.getFullYear()}${mon}${now.getDate()}`;
+  const storedDay = localStorage.getItem('vs_today');
+  const finalSeq = storedDay === today ? seq : 1;
+  localStorage.setItem('vs_today', today);
+  localStorage.setItem('vs_today_seq', finalSeq);
+  return `WTT${day}${mon}${finalSeq.toString().padStart(3,'0')}`;
+}
+
+function submitForm() {
+  // Validate
+  const name = document.getElementById('visitor-name').value.trim();
+  const mobile = document.getElementById('mobile').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const idNum = document.getElementById('id-number').value.trim();
+  const officer = document.getElementById('officer').value;
+  const reasonEl = document.querySelector('input[name="reason"]:checked');
+  
+  if (!name) { alert('कृपया नाव भरा'); return; }
+  if (!/^\d{10}$/.test(mobile)) { alert('कृपया 10 अंकी मोबाईल नंबर भरा'); return; }
+  if (!address) { alert('कृपया पत्ता भरा'); return; }
+  if (!idNum) { alert('कृपया ID क्रमांक भरा'); return; }
+  if (!reasonEl) { alert('कृपया भेटण्याचे कारण निवडा'); return; }
+  if (!officer) { alert('कृपया अधिकारी निवडा'); return; }
+
+  const idType = document.querySelector('input[name="id-type"]:checked').value;
+  let reason = reasonEl.value;
+  if (reason === 'इतर') reason = document.getElementById('other-reason').value || 'इतर';
+
+  const now = new Date();
+  const token = generateToken();
+  const photoData = document.getElementById('photo-preview').src || '';
+
+  const entry = {
+    token,
+    name,
+    mobile,
+    address,
+    idType,
+    idNumber: idNum,
+    reason,
+    officer,
+    photo: photoData,
+    entryTime: now.toISOString(),
+    exitTime: null,
+    date: now.toLocaleDateString('mr-IN')
+  };
+
+  // Save to localStorage
+  const existing = JSON.parse(localStorage.getItem('vs_visitors') || '[]');
+  existing.push(entry);
+  localStorage.setItem('vs_visitors', JSON.stringify(existing));
+
+  // Show success
+  document.getElementById('token-display').textContent = token;
+  document.getElementById('token-time').textContent = 
+    `प्रवेश: ${now.toLocaleTimeString('mr-IN', {hour:'2-digit',minute:'2-digit'})}`;
+
+  const summaryData = [
+    { lbl: 'नाव', val: name },
+    { lbl: 'मोबाईल', val: mobile },
+    { lbl: 'कारण', val: reason },
+    { lbl: 'अधिकारी', val: officer }
+  ];
+  document.getElementById('summary-rows').innerHTML = summaryData.map(d => `
+    <div class="info-row">
+      <span class="lbl">${d.lbl}</span>
+      <span class="val">${d.val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('success-section').style.display = 'block';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
